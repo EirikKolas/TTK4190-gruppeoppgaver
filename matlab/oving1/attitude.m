@@ -17,7 +17,7 @@
 %                            w = angular velocity vector (3x1)
 %                            q = unit quaternion vector (4x1)
 %
-% Author:                   2018-08-15 Thor I. Fossen and Håkon H. Helgesen
+% Author:                   2018-08-15 Thor I. Fossen and HÃ¥kon H. Helgesen
 
 %% USER INPUTS
 h = 0.1;                     % sample time (s)
@@ -43,11 +43,28 @@ w = [0 0 0]';                 % initial angular rates
 
 table = zeros(N+1,14);        % memory allocation
 
-%% FOR-END LOOP
-for i = 1:N+1,
-   t = (i-1)*h;                  % time
-   tau = [0.5 1 -1]';            % control law
+% Control params
+% control gains
+kd = 40; 
+kp = 2; 
 
+
+% linearized system
+Aol = [zeros(3,3), eye(3); zeros(3), zeros(3)]; 
+B = [zeros(3,3); I_inv]; 
+K = [kp*eye(3), kd*eye(3)]; 
+
+Acl = Aol-B*K
+
+% eigenvavlues for linearized closed loop system
+eig(Acl)
+
+%% FOR-END LOOP
+for i = 1:N+1
+   t = (i-1)*h;                  % time
+   x = [q(2:4) v]';
+   % tau = [0.5 1 -1]';            
+   tau = -K*x;            % control law
    [phi,theta,psi] = q2euler(q); % transform q to Euler angles
    [J,J1,J2] = quatern(q);       % kinematic transformation matrices
    
