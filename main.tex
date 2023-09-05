@@ -1,0 +1,43 @@
+%% This is the main file and you use this file to organize your assignment.
+
+\documentclass[a4paper]{article}	  
+\usepackage[margin=3cm]{geometry} 	   % Choose your margin here. 
+\usepackage{amsmath}
+\usepackage{parskip}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\newcommand{\figref}[1]{\figurename~\ref{#1}}
+
+\let\endtitlepage\relax						% Begin the text immidiately after the title page. Optional
+\setlength{\parindent}{0cm}				% Start paragraph without indent. Optional
+
+\title{\Large TTK4190 Guidance and Control of Vehicles \\
+\vspace{10pt}
+\Large Assignment 1 \\
+\vspace{10pt}
+\large Written Fall 2022}
+
+\author{
+  Laugaland, Hannah\\
+  \texttt{nam1@stud.ntnu.no}
+  \and
+  Kolsås, Eirik\\
+  \texttt{name2@stud.ntnu.no}
+  \and
+  Karlsen, Karen Pernille Ljosland\\
+  \texttt{kpkarlse@stud.ntnu.no}
+}
+
+\begin{document}
+
+\maketitle
+
+\input{problem1}	% Use "\include" instead of "\input" if you want the section to start on a new page. "problem1" is a tex file included at this location in the document. It is possible to answer the whole assignment in the main file (paste everything from "problem1.tex" and "problem2.tex" here), but that restricts the readability. Therefore, one file is created for each problem.
+\include{problem2}
+ 
+\bibliographystyle{IEEEtran}
+\bibliography{bibliography.bib}
+
+\end{document}
