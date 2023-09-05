@@ -21,7 +21,7 @@
 
 %% USER INPUTS
 h = 0.1;                     % sample time (s)
-N  = 400;                    % number of samples. Should be adjusted
+N  = 2500;                    % number of samples. Should be adjusted
 
 % model parameters
 m = 180;
@@ -33,9 +33,9 @@ I_inv = inv(I);
 deg2rad = pi/180;   
 rad2deg = 180/pi;
 
-phi = -10*deg2rad;            % initial Euler angles
+phi = -5*deg2rad;            % initial Euler angles
 theta = 10*deg2rad;
-psi = 5*deg2rad;
+psi = -20*deg2rad;
 
 q = euler2q(phi,theta,psi);   % transform initial Euler angles to q
 
@@ -54,15 +54,15 @@ Aol = [zeros(3,3), eye(3); zeros(3), zeros(3)];
 B = [zeros(3,3); I_inv]; 
 K = [kp*eye(3), kd*eye(3)]; 
 
-Acl = Aol-B*K
+Acl = Aol-B*K;
 
 % eigenvavlues for linearized closed loop system
-eig(Acl)
+eig(Acl);
 
 %% FOR-END LOOP
 for i = 1:N+1
-   t = (i-1)*h;                  % time
-   x = [q(2:4) v]';
+   t = (i-1)*h;  
+   x = [q(2:4); w];
    % tau = [0.5 1 -1]';            
    tau = -K*x;            % control law
    [phi,theta,psi] = q2euler(q); % transform q to Euler angles
@@ -88,12 +88,18 @@ psi     = rad2deg*table(:,8);
 w       = rad2deg*table(:,9:11);  
 tau     = table(:,12:14);
 
+% Define the linewidth
+linewidth = 1;
 
-figure (1); clf;
+% Create a single figure with three subplots
+figure;
+
+% Subplot 1 - Euler angles
+subplot(3, 1, 1);
 hold on;
-plot(t, phi, 'b');
-plot(t, theta, 'r');
-plot(t, psi, 'g');
+plot(t, phi, 'b', 'LineWidth', linewidth);
+plot(t, theta, 'r', 'LineWidth', linewidth);
+plot(t, psi, 'g', 'LineWidth', linewidth);
 hold off;
 grid on;
 legend('\phi', '\theta', '\psi');
@@ -101,11 +107,12 @@ title('Euler angles');
 xlabel('time [s]'); 
 ylabel('angle [deg]');
 
-figure (2); clf;
+% Subplot 2 - Angular velocities
+subplot(3, 1, 2);
 hold on;
-plot(t, w(:,1), 'b');
-plot(t, w(:,2), 'r');
-plot(t, w(:,3), 'g');
+plot(t, w(:,1), 'b', 'LineWidth', linewidth);
+plot(t, w(:,2), 'r', 'LineWidth', linewidth);
+plot(t, w(:,3), 'g', 'LineWidth', linewidth);
 hold off;
 grid on;
 legend('p', 'q', 'r');
@@ -113,14 +120,53 @@ title('Angular velocities');
 xlabel('time [s]'); 
 ylabel('angular rate [deg/s]');
 
-figure (3); clf;
+% Subplot 3 - Control input
+subplot(3, 1, 3);
 hold on;
-plot(t, tau(:,1), 'b');
-plot(t, tau(:,2), 'r');
-plot(t, tau(:,3), 'g');
+plot(t, tau(:,1), 'b', 'LineWidth', linewidth);
+plot(t, tau(:,2), 'r', 'LineWidth', linewidth);
+plot(t, tau(:,3), 'g', 'LineWidth', linewidth);
 hold off;
 grid on;
 legend('x', 'y', 'z');
 title('Control input');
 xlabel('time [s]'); 
 ylabel('input [Nm]');
+
+
+% 
+% figure (1); clf;
+% hold on;
+% plot(t, phi, 'b');
+% plot(t, theta, 'r');
+% plot(t, psi, 'g');
+% hold off;
+% grid on;
+% legend('\phi', '\theta', '\psi');
+% title('Euler angles');
+% xlabel('time [s]'); 
+% ylabel('angle [deg]');
+% 
+% figure (2); clf;
+% hold on;
+% plot(t, w(:,1), 'b');
+% plot(t, w(:,2), 'r');
+% plot(t, w(:,3), 'g');
+% hold off;
+% grid on;
+% legend('p', 'q', 'r');
+% title('Angular velocities');
+% xlabel('time [s]'); 
+% ylabel('angular rate [deg/s]');
+% 
+% figure (3); clf;
+% hold on;
+% plot(t, tau(:,1), 'b');
+% plot(t, tau(:,2), 'r');
+% plot(t, tau(:,3), 'g');
+% hold off;
+% grid on;
+% legend('x', 'y', 'z');
+% title('Control input');
+% xlabel('time [s]'); 
+% ylabel('input [Nm]');
