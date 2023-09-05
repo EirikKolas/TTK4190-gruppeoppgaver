@@ -45,8 +45,8 @@ table = zeros(N+1,14);        % memory allocation
 
 % Control params
 % control gains
-kd = 40; 
-kp = 2; 
+kd = 400; 
+kp = 20; 
 
 
 % linearized system
@@ -62,16 +62,33 @@ eig(Acl);
 %% FOR-END LOOP
 for i = 1:N+1
    t = (i-1)*h;  
-   x = [q(2:4); w];
-   % tau = [0.5 1 -1]';            
-   tau = -K*x;            % control law
-   [phi,theta,psi] = q2euler(q); % transform q to Euler angles
+   
+
+   %time varying reference signals
+   phi_d = 0;
+%    theta_d = 15*cos(0.1*t); 
+%    psi_d = 10*sin(0.05*t); 
+   theta_d = 1; %15*cos(0.1*t); 
+   psi_d = 0.5; %10*sin(0.05*t); 
+   q_d = euler2q(phi_d,theta_d,psi_d); 
+
+   %define error state
+   q_d_conj = [q_d(1); -q_d(2:4)]; 
+   q_err = quatprod(q_d_conj, q); 
+   x_err = [q_err(2:4); w];
+
+   tau = -K*x_err;            % control law
    [J,J1,J2] = quatern(q);       % kinematic transformation matrices
    
    q_dot = J2*w;                        % quaternion kinematics
    w_dot = I_inv*(Smtrx(I*w)*w + tau);  % rigid-body kinetics
-   
-   table(i,:) = [t q' phi theta psi w' tau'];  % store data in table
+
+   %store values
+   [phi,theta,psi] = q2euler(q); % transform q to Euler angles
+   phi_e = phi - phi_d;
+   theta_e = theta - theta_d;
+   psi_e = psi - psi_d;
+   table(i,:) = [t q' phi_e theta_e psi_e w' tau'];  % store data in table
    
    q = q + h*q_dot;	             % Euler integration
    w = w + h*w_dot;
@@ -103,7 +120,7 @@ plot(t, psi, 'g', 'LineWidth', linewidth);
 hold off;
 grid on;
 legend('\phi', '\theta', '\psi');
-title('Euler angles');
+title('Error in euler angles');
 xlabel('time [s]'); 
 ylabel('angle [deg]');
 
@@ -132,41 +149,3 @@ legend('x', 'y', 'z');
 title('Control input');
 xlabel('time [s]'); 
 ylabel('input [Nm]');
-
-
-% 
-% figure (1); clf;
-% hold on;
-% plot(t, phi, 'b');
-% plot(t, theta, 'r');
-% plot(t, psi, 'g');
-% hold off;
-% grid on;
-% legend('\phi', '\theta', '\psi');
-% title('Euler angles');
-% xlabel('time [s]'); 
-% ylabel('angle [deg]');
-% 
-% figure (2); clf;
-% hold on;
-% plot(t, w(:,1), 'b');
-% plot(t, w(:,2), 'r');
-% plot(t, w(:,3), 'g');
-% hold off;
-% grid on;
-% legend('p', 'q', 'r');
-% title('Angular velocities');
-% xlabel('time [s]'); 
-% ylabel('angular rate [deg/s]');
-% 
-% figure (3); clf;
-% hold on;
-% plot(t, tau(:,1), 'b');
-% plot(t, tau(:,2), 'r');
-% plot(t, tau(:,3), 'g');
-% hold off;
-% grid on;
-% legend('x', 'y', 'z');
-% title('Control input');
-% xlabel('time [s]'); 
-% ylabel('input [Nm]');
