@@ -65,17 +65,31 @@ for i = 1:N+1
    
 
    %time varying reference signals
-   phi_d = 0;
-   theta_d = 15*cos(0.01*t); 
-   psi_d = 10*sin(0.005*t); 
-%    theta_d = 1; %15*cos(0.1*t); 
-%    psi_d = 0.5; %10*sin(0.05*t); 
-    q_d = euler2q(phi_d,theta_d,psi_d); 
+   theta_freq = 0.01; 
+   psi_freq = 0.005; 
 
+   phi_d = 0;
+%    theta_d = 15*cos(theta_freq*t); 
+%    psi_d = 10*sin(psi_freq*t); 
+   theta_d = 3;
+   psi_d = 1; 
+
+   q_d = euler2q(phi_d,theta_d,psi_d);
+
+   phi_d_dot = 0; 
+%    theta_d_dot = -15*theta_freq*sin(0.1*t); 
+%    psi_d_dot = 10*psi_freq*cos(0.05*t); 
+   theta_d_dot = 0; 
+   psi_d_dot = 0; 
+
+   w_d = Tzyx(phi_d, theta_d)\[phi_d_dot; theta_d_dot; psi_d_dot]; 
+
+ 
    %define error state
    q_d_conj = [q_d(1); -q_d(2:4)]; 
    q_err = quatprod(q_d_conj, q); 
-   x_err = [q_err(2:4); w];
+   w_err = w - w_d; 
+   x_err = [q_err(2:4); w_err];
 
    tau = -K*x_err;            % control law
    [J,J1,J2] = quatern(q);       % kinematic transformation matrices
@@ -85,10 +99,10 @@ for i = 1:N+1
 
    %store values
    [phi,theta,psi] = q2euler(q); % transform q to Euler angles
-   phi_e = ssa(phi - phi_d);
-   theta_e = ssa(theta - theta_d);
-   psi_e = ssa(psi - psi_d);
-   table(i,:) = [t q' phi_e theta_e psi_e w' tau'];  % store data in table
+   phi_e = phi - phi_d;
+   theta_e = theta - theta_d;
+   psi_e = psi - psi_d;
+   table(i,:) = [t q' phi_e theta_e psi_e w_err' tau'];  % store data in table
    
    q = q + h*q_dot;	             % Euler integration
    w = w + h*w_dot;
@@ -133,7 +147,7 @@ plot(t, w(:,3), 'g', 'LineWidth', linewidth);
 hold off;
 grid on;
 legend('p', 'q', 'r');
-title('Angular velocities');
+title('Angular velocities error');
 xlabel('time [s]'); 
 ylabel('angular rate [deg/s]');
 
