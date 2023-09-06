@@ -21,7 +21,7 @@
 
 %% USER INPUTS
 h = 0.1;                     % sample time (s)
-N  = 2500;                    % number of samples. Should be adjusted
+N  = 5000;                    % number of samples. Should be adjusted
 
 % model parameters
 m = 180;
@@ -66,11 +66,11 @@ for i = 1:N+1
 
    %time varying reference signals
    phi_d = 0;
-%    theta_d = 15*cos(0.1*t); 
-%    psi_d = 10*sin(0.05*t); 
-   theta_d = 1; %15*cos(0.1*t); 
-   psi_d = 0.5; %10*sin(0.05*t); 
-   q_d = euler2q(phi_d,theta_d,psi_d); 
+   theta_d = 15*cos(0.01*t); 
+   psi_d = 10*sin(0.005*t); 
+%    theta_d = 1; %15*cos(0.1*t); 
+%    psi_d = 0.5; %10*sin(0.05*t); 
+    q_d = euler2q(phi_d,theta_d,psi_d); 
 
    %define error state
    q_d_conj = [q_d(1); -q_d(2:4)]; 
@@ -85,9 +85,9 @@ for i = 1:N+1
 
    %store values
    [phi,theta,psi] = q2euler(q); % transform q to Euler angles
-   phi_e = phi - phi_d;
-   theta_e = theta - theta_d;
-   psi_e = psi - psi_d;
+   phi_e = ssa(phi - phi_d);
+   theta_e = ssa(theta - theta_d);
+   psi_e = ssa(psi - psi_d);
    table(i,:) = [t q' phi_e theta_e psi_e w' tau'];  % store data in table
    
    q = q + h*q_dot;	             % Euler integration
