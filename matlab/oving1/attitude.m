@@ -21,7 +21,7 @@
 
 %% USER INPUTS
 h = 0.1;                     % sample time (s)
-N  = 5000;                    % number of samples. Should be adjusted
+N  = 15000;                    % number of samples. Should be adjusted
 
 % model parameters
 m = 180;
@@ -69,18 +69,16 @@ for i = 1:N+1
    psi_freq = 0.005; 
 
    phi_d = 0;
-%    theta_d = 15*cos(theta_freq*t); 
-%    psi_d = 10*sin(psi_freq*t); 
-   theta_d = 3;
-   psi_d = 1; 
+   theta_d = 15*cos(theta_freq*t)*deg2rad;
+   psi_d = 10*sin(psi_freq*t)*deg2rad; 
+
 
    q_d = euler2q(phi_d,theta_d,psi_d);
 
    phi_d_dot = 0; 
-%    theta_d_dot = -15*theta_freq*sin(0.1*t); 
-%    psi_d_dot = 10*psi_freq*cos(0.05*t); 
-   theta_d_dot = 0; 
-   psi_d_dot = 0; 
+   theta_d_dot = -15*theta_freq*sin(0.1*t)*deg2rad; 
+   psi_d_dot = 10*psi_freq*cos(0.05*t)*deg2rad; 
+
 
    w_d = Tzyx(phi_d, theta_d)\[phi_d_dot; theta_d_dot; psi_d_dot]; 
 
