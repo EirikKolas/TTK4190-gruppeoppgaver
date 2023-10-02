@@ -51,7 +51,7 @@ kp = 20;
 
 % linearized system
 Aol = [zeros(3,3), (1/2)*eye(3); zeros(3), zeros(3)]; 
-B = [zeros(3,3); (1/720)*I_inv]; 
+B = [zeros(3,3); I_inv]; 
 K = [kp*eye(3), kd*eye(3)]; 
 
 Acl = Aol-B*K;
@@ -65,8 +65,8 @@ for i = 1:N+1
    
 
    %time varying reference signals
-   theta_freq = 0.01; 
-   psi_freq = 0.005; 
+   theta_freq = 0.1; 
+   psi_freq = 0.05; 
 
    phi_d = 0;
    theta_d = 15*cos(theta_freq*t)*deg2rad;
