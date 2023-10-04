@@ -59,6 +59,10 @@ Nrdot = -2.4283e10;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Add added mass here
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MA = -[[Xudot, 0, 0]; 
+       [0, Yvdot, Yrdot]; 
+       [0, Nvdot, Nrdot]]; 
+
 
 % rigid-body mass matrix
 MRB = [ m 0    0 
@@ -83,6 +87,12 @@ CRB = m * nu(3) * [ 0 -1 -xg
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Add Coriolis due to added mass here
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% nu = [u,v,w,p,q,r]
+
+CA = [[0, 0, Yvdot*nu(2) + Yrdot*nu(6)]; 
+      [0, 0, -Xudot*nu(1)]; 
+      [-Yvdot*nu(2) - Yrdot*nu(6), Xudot*nu(1), 0]]; %eq 6.58
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Add linear damping here
