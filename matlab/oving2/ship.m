@@ -90,9 +90,9 @@ CRB = m * nu(3) * [ 0 -1 -xg
 
 % nu = [u,v,w,p,q,r]
 
-CA = [[0, 0, Yvdot*nu(2) + Yrdot*nu(6)]; 
-      [0, 0, -Xudot*nu(1)]; 
-      [-Yvdot*nu(2) - Yrdot*nu(6), Xudot*nu(1), 0]]; %eq 6.58
+% CA = [[0, 0, Yvdot*nu(2) + Yrdot*nu(6)]; 
+%       [0, 0, -Xudot*nu(1)]; 
+%       [-Yvdot*nu(2) - Yrdot*nu(6), Xudot*nu(1), 0]]; %eq 6.58
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Add linear damping here
