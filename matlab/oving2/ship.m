@@ -68,6 +68,9 @@ MA = -[[Xudot, 0, 0];
 MRB = [ m 0    0 
         0 m    m*xg
         0 m*xg Iz ];
+
+MRB = MRB + MA; 
+
 Minv = inv(MRB);
 
 % input matrix
@@ -88,19 +91,37 @@ CRB = m * nu(3) * [ 0 -1 -xg
 % Add Coriolis due to added mass here
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% nu = [u,v,w,p,q,r]
+% x = [ u v r x y psi delta n ]'
 
-% CA = [[0, 0, Yvdot*nu(2) + Yrdot*nu(6)]; 
-%       [0, 0, -Xudot*nu(1)]; 
-%       [-Yvdot*nu(2) - Yrdot*nu(6), Xudot*nu(1), 0]]; %eq 6.58
+CA = [[0, 0, Yvdot*x(2) + Yrdot*x(3)]; 
+      [0, 0, -Xudot*x(1)]; 
+      [-Yvdot*x(2) - Yrdot*x(3), Xudot*x(1), 0]]; %eq 6.58
+
+CRB = CRB + CA; 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Add linear damping here
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+T1 = 20; 
+T2 = 20; 
+T6 = 10;
+
+Xu = -(m - Xudot)/T1; 
+Yv = -(m - Yvdot)/T2; 
+Nr = -(Iz - Nrdot)/T6; %OBS - correct? 
+
+D = diag([Xu, Yv, Nr]); 
+
+CRB = CRB + D; %OBS - correct? 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Add nonlinear damping here
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% nonlinear surge damping described in eqs. (6.76,6.77)
+
+% crossflow drag in eqs. (6.87,6.88)
 
 R = Rzyx(0,0,eta(3));
 
