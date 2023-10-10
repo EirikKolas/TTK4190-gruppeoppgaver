@@ -97,7 +97,6 @@ CA = [[0, 0, Yvdot*x(2) + Yrdot*x(3)];
       [0, 0, -Xudot*x(1)]; 
       [-Yvdot*x(2) - Yrdot*x(3), Xudot*x(1), 0]]; %eq 6.58
 
-CRB = CRB + CA; 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Add linear damping here
@@ -109,19 +108,38 @@ T6 = 10;
 
 Xu = -(m - Xudot)/T1; 
 Yv = -(m - Yvdot)/T2; 
-Nr = -(Iz - Nrdot)/T6; %OBS - correct? 
+Nr = -(Iz - Nrdot)/T6; 
 
 D = diag([Xu, Yv, Nr]); 
-
-CRB = CRB + D; %OBS - correct? 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Add nonlinear damping here
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % nonlinear surge damping described in eqs. (6.76,6.77)
+S = L*B + L*T*2 + B*T*2; 
+Rn = L*abs(x(1))/10e-6; %reynolds number
+Cf = 0.075/((log10(Rn)-2)^2) + 0.001; 
+X = -0.5*rho*S*(1+0.1)*Cf*abs(x(1))*x(1); 
+
 
 % crossflow drag in eqs. (6.87,6.88)
+Cd_2D = Hoerner(B,T);
+v_r = x(2);      %OBS  -correct? 
+r = x(3); 
+dx = L/10; % 10 strips
+Ycf = 0; 
+Ncf = 0; 
+for xL = (-L)/2:dx:L/2
+    Ucf = abs(v_r + xL * r) * (v_r + xL * r);
+    Ycf = Ycf - 0.5 * rho * T * Cd_2D * Ucf * dx; % sway force
+    Ncf = Ncf - 0.5 * rho * T * Cd_2D * xL * Ucf * dx; % yaw moment
+end
+
+nonlin_D = diag([X, Ycf, Ncf]); 
+
+
+%__________
 
 R = Rzyx(0,0,eta(3));
 
@@ -131,7 +149,7 @@ thr = rho * Dia^4 * KT * abs(n) * n;    % thrust command (N)
 % ship dynamics
 u = [ thr delta ]';
 tau = Bi * u;
-nu_dot = Minv * (tau - CRB * nu); 
+nu_dot = Minv * (tau - (CRB + CA + D + nonlin_D) * nu); 
 eta_dot = R * nu;    
 
 % Rudder saturation and dynamics (Sections 9.5.2)

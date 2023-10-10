@@ -1,0 +1,264 @@
+% This LaTeX was auto-generated from MATLAB code.
+% To make changes, update the MATLAB code and export to LaTeX again.
+
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{epstopdf}
+\usepackage[table]{xcolor}
+\usepackage{matlab}
+
+\sloppy
+\epstopdfsetup{outdir=./}
+\graphicspath{ {./Part1Tasks_images/} }
+
+\begin{document}
+
+\matlabtitle{Assignment 2, part 1}
+
+\matlabheading{Parameters and general functions}
+
+\begin{matlabcode}
+L = 161; %m
+B = 21.8; %m
+H = 15.8; %m
+T = 4.74; %m
+rho = 1025; %kg/m^3 %OBS - supposed to be the density of the ship
+mass = rho*L*B*H; 
+g = -9.81; 
+
+r_b_bg = [-3.7; 0; H/2]; %from CO to CG represented in bodyframe
+ny = ones(6,1); 
+
+S = @(r) [0, -r(3), r(2);
+                   r(3), 0, -r(1);
+                   -r(2), r(1), 0]; %skew matrix
+
+H_transform = @(r) [[eye(3), S(r)']; 
+          [zeros(3,3), eye(3)]]; %eq 3.27 - transformation matrix from CG to CO
+
+M_3DOF = @(M_6DOF) [M_6DOF(1:2, 1:2), M_6DOF(1:2, 6);
+                   M_6DOF(6, 1:2), M_6DOF(6, 6)]; %reduce from 6 dof to 3 dof
+
+\end{matlabcode}
+
+\matlabheading{Task 1}
+
+\begin{par}
+\begin{flushleft}
+A - Compute Iz nummerically
+\end{flushleft}
+\end{par}
+
+\begin{matlabcode}
+fun = @(x,y,z) (y.^2 + z.^2)*rho; 
+Ix = integral3(fun, 0, L, 0, B, 0, H)
+\end{matlabcode}
+\begin{matlaboutput}
+Ix = 1.3734e+10
+\end{matlaboutput}
+\begin{matlabcode}
+
+fun = @(x,y,z) (x.^2 + z.^2)*rho; 
+Iy = integral3(fun, 0, L, 0, B, 0, H)
+\end{matlabcode}
+\begin{matlaboutput}
+Iy = 4.9586e+11
+\end{matlaboutput}
+\begin{matlabcode}
+
+fun = @(x,y,z) (x.^2 + y.^2); 
+Iz = integral3(fun, 0, L, 0, B, 0, H)
+\end{matlabcode}
+\begin{matlaboutput}
+Iz = 4.8793e+08
+\end{matlaboutput}
+\begin{matlabcode}
+
+fun = @(x,y,z) (x.*y)*rho; 
+Ixy = integral3(fun, 0, L, 0, B, 0, H)
+\end{matlabcode}
+\begin{matlaboutput}
+Ixy = 4.9875e+10
+\end{matlaboutput}
+\begin{matlabcode}
+
+fun = @(x,y,z) (x.*z)*rho; 
+Ixz = integral3(fun, 0, L, 0, B, 0, H)
+\end{matlabcode}
+\begin{matlaboutput}
+Ixz = 3.6148e+10
+\end{matlaboutput}
+\begin{matlabcode}
+
+fun = @(x,y,z) (y.*z)*rho; 
+Iyz = integral3(fun, 0, L, 0, B, 0, H)
+\end{matlabcode}
+\begin{matlaboutput}
+Iyz = 4.8946e+09
+\end{matlaboutput}
+\begin{matlabcode}
+
+Iz_CG = [[Ix, -Ixy, -Ixz]; 
+         [-Ixy, Iy, -Iyz]; 
+         [-Ixz, -Iyz, Iz]]; % eq 3.22
+\end{matlabcode}
+
+
+\begin{par}
+\begin{flushleft}
+B - Find Iz\_CO
+\end{flushleft}
+\end{par}
+
+\begin{matlabcode}
+Iz_CO = Iz_CG + mass*(r_b_bg'*r_b_bg*eye(3) - r_b_bg*(r_b_bg')) %eq 3.36
+\end{matlabcode}
+\begin{matlaboutput}
+Iz_CO = 3x3    
+1.0e+11 *
+
+    0.1728   -0.4988   -0.3449
+   -0.4988    5.0018   -0.0489
+   -0.3449   -0.0489    0.0127
+
+\end{matlaboutput}
+
+\begin{par}
+\begin{flushleft}
+What is the ratio between the two moments of inertia? 
+\end{flushleft}
+\end{par}
+
+
+\begin{par}
+\begin{flushleft}
+C - Find MRB and CRB about CO
+\end{flushleft}
+\end{par}
+
+\begin{matlabcode}
+MRB_CG = [[mass*eye(3), zeros(3,3)]; 
+          [zeros(3,3), Iz_CG]]; %eq 3.24
+MRB_CO = H_transform(r_b_bg)'*MRB_CG*H_transform(r_b_bg); %eq 3.29
+
+% ny = [u,v,w,p,q,r]
+CRB_CG = @(ny) [[0, -mass*ny(6), mass*ny(5), 0, 0, 0]; 
+                [mass*ny(6), 0, -mass*ny(4), 0, 0, 0]; 
+                [-mass*ny(5), mass*ny(4), 0, 0, 0, 0]; 
+                [0, 0, 0, 0, Iz*ny(6), -Iy*ny(5)]; 
+                [0, 0, 0, -Iz*ny(6), 0, Ix*ny(4)]; 
+                [0, 0, 0, Iy*ny(5), -Ix*ny(4), 0]]; %eq 3.64
+
+CRB_CO = @(r, ny) H_transform(r)'*CRB_CG(ny)*H_transform(r); %eq 3.64
+
+
+
+MRB = M_3DOF(MRB_CO); % MRB about CO with 3DOF = surge, sway, yaw = 1,2,6
+CRB = M_3DOF(CRB_CO(r_b_bg, ny))
+\end{matlabcode}
+\begin{matlaboutput}
+CRB = 3x3    
+1.0e+08 *
+
+         0   -0.5684    2.1031
+    0.5684         0         0
+   -2.1031         0         0
+
+\end{matlaboutput}
+
+
+\begin{par}
+\begin{flushleft}
+D - It is desirable that CRB is skewsymmetric because it makes it possible (or a lot easier) to proove stability of a nonlinear motion control system. 
+\end{flushleft}
+\end{par}
+
+\begin{matlabcode}
+assert(all(all(CRB == -CRB')), 'Coriolis and centripetal matrix is not skew symmetric.')
+\end{matlabcode}
+
+\begin{par}
+\begin{flushleft}
+E - The coriolis matrix depends on the angular velocity and the lever arm, while it is independent of the libear velocity. When the ocean currents are irrotational, we can replace nu by the realtive velocity vector (e.g. use eq 3.66). 
+\end{flushleft}
+\end{par}
+
+
+
+\vspace{1em}
+\matlabheading{Task 2}
+
+\begin{par}
+\begin{flushleft}
+A , B- Compute hydrostatic force
+\end{flushleft}
+\end{par}
+
+\begin{matlabcode}
+Awp = L*B; 
+vol_displacement = Awp*T; 
+Zhs = @(z) -rho*g*Awp*z; %eq 4.14 
+\end{matlabcode}
+
+\begin{par}
+\begin{flushleft}
+Hydrostatic force usnder the assumption that the water surface is constant, as a function of heave in NED frame.
+\end{flushleft}
+\end{par}
+
+\begin{par}
+\begin{flushleft}
+C - Compute the heave period .
+\end{flushleft}
+\end{par}
+
+\begin{matlabcode}
+T3 = 2*pi*sqrt(2*T/abs(g)); %eq 4.78. Obs T3 is the heave period. T is draft of the prism. 
+\end{matlabcode}
+
+\begin{par}
+\begin{flushleft}
+D,E - Metacentric stability
+\end{flushleft}
+\end{par}
+
+\begin{matlabcode}
+% Computation based on section 4.2.3
+KB = (1/3)*((5*T/2) - (vol_displacement/Awp)); 
+
+KG = H/2; %distance between CG and Keel line OBS - not sure
+BG = KG - KB; 
+
+I_T = (1/12)*(B^3)*L; 
+I_L = (1/12)*B*(L^3); 
+
+BM_T = I_T/vol_displacement;  
+BM_L = I_L/vol_displacement; 
+
+GM_T = BM_T - BG
+\end{matlabcode}
+\begin{matlaboutput}
+GM_T = 2.8251
+\end{matlaboutput}
+\begin{matlabcode}
+GM_L = BM_L - BG 
+\end{matlabcode}
+\begin{matlaboutput}
+GM_L = 450.1838
+\end{matlaboutput}
+
+\begin{par}
+\begin{flushleft}
+Both the transverse and the longitudinal metacentric heights are positive, thus the prism is metacentrically stable. Def 4.2. The longetudinal metacentric height i large as expected. The transverse metacentric height is well above 0.5, thus quite stiff. 
+\end{flushleft}
+\end{par}
+
+\end{document}
