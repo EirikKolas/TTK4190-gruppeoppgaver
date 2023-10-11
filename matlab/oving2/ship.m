@@ -110,7 +110,7 @@ Xu = -(m - Xudot)/T1;
 Yv = -(m - Yvdot)/T2; 
 Nr = -(Iz - Nrdot)/T6; 
 
-D = diag([Xu, Yv, Nr]); 
+D = -diag([Xu, Yv, Nr]); 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Add nonlinear damping here
@@ -118,7 +118,7 @@ D = diag([Xu, Yv, Nr]);
 
 % nonlinear surge damping described in eqs. (6.76,6.77)
 S = L*B + L*T*2 + B*T*2; 
-Rn = L*abs(x(1))/10e-6; %reynolds number
+Rn = L*abs(x(1))/1e-6; %reynolds number
 Cf = 0.075/((log10(Rn)-2)^2) + 0.001; 
 X = -0.5*rho*S*(1+0.1)*Cf*abs(x(1))*x(1); 
 
@@ -136,7 +136,7 @@ for xL = (-L)/2:dx:L/2
     Ncf = Ncf - 0.5 * rho * T * Cd_2D * xL * Ucf * dx; % yaw moment
 end
 
-nonlin_D = diag([X, Ycf, Ncf]); 
+nonlin_D = [X; Ycf; Ncf]; 
 
 
 %__________
@@ -149,7 +149,7 @@ thr = rho * Dia^4 * KT * abs(n) * n;    % thrust command (N)
 % ship dynamics
 u = [ thr delta ]';
 tau = Bi * u;
-nu_dot = Minv * (tau - (CRB + CA + D + nonlin_D) * nu); 
+nu_dot = Minv * (tau - (CRB + CA + D) * nu + nonlin_D); 
 eta_dot = R * nu;    
 
 % Rudder saturation and dynamics (Sections 9.5.2)
