@@ -32,16 +32,18 @@ for i=1:Ns+1
     t = (i-1) * h;              % time (s)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Part 2, 1a) Add current disturbance here 
+    % Part 2, 1a) Add current disturbance here 49
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    uc = 0;
-    vc = 0;
+    Vc = 1;
+    beta_Vc = 45; 
+    uc = Vc*cos(beta_Vc);
+    vc = Vc*sin(beta_Vc);
     nu_c = [ uc vc 0 ]';
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 2, 1c) Add wind disturbance here 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Ywind = 0;
+    Ywind = 0; %
     Nwind = 0;
     tau_wind = [0 Ywind Nwind]';
     
