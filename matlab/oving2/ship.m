@@ -69,10 +69,6 @@ MRB = [ m 0    0
         0 m    m*xg
         0 m*xg Iz ];
 
-MRB = MRB + MA; 
-
-Minv = inv(MRB);
-
 % input matrix
 t_thr = 0.05;           % thrust deduction number
 X_delta2 = 0;         % rudder coefficients (Section 9.5)
@@ -149,7 +145,7 @@ thr = rho * Dia^4 * KT * abs(n) * n;    % thrust command (N)
 % ship dynamics
 u = [ thr delta ]';
 tau = Bi * u;
-nu_dot = Minv * (tau - (CRB + CA + D) * nu + nonlin_D); 
+nu_dot = (MRB + MA)\(tau - (CRB + CA + D) * nu + nonlin_D); 
 eta_dot = R * nu;    
 
 % Rudder saturation and dynamics (Sections 9.5.2)
