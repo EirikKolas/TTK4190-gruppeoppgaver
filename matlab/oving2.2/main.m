@@ -34,16 +34,38 @@ for i=1:Ns+1
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 2, 1a) Add current disturbance here 49
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Vc = 1;
-    beta_Vc = 45; 
-    uc = Vc*cos(beta_Vc);
-    vc = Vc*sin(beta_Vc);
-    nu_c = [ uc vc 0 ]';
+    Vc = 100;
+    beta_Vc = deg2rad(45); 
+    u_c = Vc*cos(beta_Vc);
+    v_c = Vc*sin(beta_Vc);
+
+    nu_c = [ u_c v_c 0 ]';
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 2, 1c) Add wind disturbance here 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Ywind = 0; %
+    V_w = 10; 
+    beta_V_w = deg2rad(135);
+    c_y = 0.95; 
+    c_n = 0.15; 
+    L = 161; 
+    A_L_w = 10*L;
+    psi = x(6);
+    rho_a = 1.247; 
+    q = 0.5*rho_a*V_w^2; 
+    gamma_w = psi-beta_V_w-pi;
+    
+    C_N_gamma_w = c_n*sin(2*gamma_w);
+    C_Y_gamma_w = c_y*sin(gamma_w);
+
+    if t >200
+        Ywind = q*C_Y_gamma_w*A_L_w;
+        Nwind = q*C_N_gamma_w*A_L_w*L; 
+    else
+        Ywind = 0; 
+        Nwind = 0;
+    end 
+    Ywind = 0; 
     Nwind = 0;
     tau_wind = [0 Ywind Nwind]';
     
@@ -53,10 +75,15 @@ for i=1:Ns+1
     % check eq. (15.143) in (Fossen, 2021) for help
     %
     % The result should look like this:
-    % xd_dot = ref_model(xd,psi_ref(i));
+    % xd_dot = ref_model(xd, psi_ref(i));
     % psi_d = xd(1);
     % r_d = xd(2);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    % xd_dot = ref_model(xd, psi_ref(i));
+    % psi_d  = xd(1);
+    % r_d    = xd(2);
+    % u_d    = U_ref;
     psi_d = psi_ref;
     r_d = 0;
     u_d = U_ref;
@@ -145,6 +172,29 @@ title('Actual and commanded propeller speed (rpm)'); xlabel('time (s)');
 subplot(313)
 plot(t,delta_0,t,delta_c,'linewidth',2);
 title('Actual and commanded rudder angles (deg)'); xlabel('time (s)');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Own plots
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Speed over ground
+U = sqrt(u.^2 + v.^2);                      % m/s
+% Relative speed
+U_r = sqrt((u-u_c).^2 + (v-v_c).^2);        % m/s
+% Sideslip angle
+beta = atan((v-v_c)./U_r);                  % rad
+beta_deg = (180/pi) * beta;                 % deg
+% Crab angle
+beta_c = atan(v./U);                        % rad
+beta_c_deg = (180/pi) * beta_c;             % deg
+figure(4)
+figure(gcf)
+plot(t,beta_deg,'linewidth',2); hold on;
+plot(t,beta_c_deg,'linewidth',2);
+title('Sideslip vs. Crab Angle'); xlabel('time (s)');
+legend('Sideslip angle','Crab angle');
+
+
+
 %% Create objects for 3-D visualization 
 % Since we only simulate 3-DOF we need to construct zero arrays for the 
 % excluded dimensions, including height, roll and pitch
@@ -152,6 +202,8 @@ z = zeros(length(x),1);
 phi = zeros(length(psi),1);
 theta = zeros(length(psi),1);
 
+figure(5)
+figure(gcf)
 % create object 1: ship (ship1.mat)
 new_object('flypath3d_v2/ship1.mat',[x,y,z,phi,theta,psi],...
 'model','royalNavy2.mat','scale',(max(max(abs(x)),max(abs(y)))/1000),...

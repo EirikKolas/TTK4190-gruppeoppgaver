@@ -65,6 +65,11 @@ rho = 1025;             % density of water (m/s^3)
 % The result should look like this:
 % [KT,KQ] = wageningen(...);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+J_a = 0; 
+PD = 1.5;   %pitch diameter ratio
+BAR = 0.65; %blade area ratio
+z = 4; %number of blades
+[KT, KQ] = wageningen(J_a,PD,BAR,z);
 
 % rudder limitations
 delta_max  = 40 * pi/180;        % max rudder angle      (rad)
@@ -147,6 +152,9 @@ d = -[Xns Ycf Ncf]';
 % thr = ....
 % Q = ....
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%thr = 
+%Q=
+
 thr = rho * Dia^4 * KT * abs(n) * n;    % thrust command (N)
 
 % ship dynamics
