@@ -122,6 +122,13 @@ for i=1:Ns+1
     % The result should look like this:
     % n_c = open_loop_speed_control(U_ref);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    % Part 3, 1d) If we assume that
+    % - the velocity vector has a non zero component only in the x direction,
+    % - the velocity is constant
+    % - The square of the rudder angle is close to zero
+    % then we can compute cruise speed as stated in the assignment. 
+    % This is readily seen from equation 6.136. 
     n_c = 10;                   % propeller speed (rps)
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -65,11 +65,11 @@ rho = 1025;             % density of water (m/s^3)
 % The result should look like this:
 % [KT,KQ] = wageningen(...);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% J_a = 0; 
-% PD = 1.5;   %pitch diameter ratio
-% BAR = 0.65; %blade area ratio
-% z = 4; %number of blades
-% [KT, KQ] = wageningen(J_a,PD,BAR,z);
+J_a = 0; 
+PD = 1.5;   %pitch diameter ratio
+BAR = 0.65; %blade area ratio
+z = 4; %number of blades
+[KT, KQ] = wageningen(J_a,PD,BAR,z);
 
 % rudder limitations
 delta_max  = 40 * pi/180;        % max rudder angle      (rad)
@@ -152,8 +152,8 @@ d = -[Xns Ycf Ncf]';
 % thr = ....
 % Q = ....
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%thr = 
-%Q=
+thr = rho*Dia^4*KT*J_a*abs(n)*n;
+Q = rho*Dia^4*KQ*J_a*abs(n)*n;
 
 thr = rho * Dia^4 * KT * abs(n) * n;    % thrust command (N)
 
@@ -180,8 +180,33 @@ end
 % the result should look like this:
 % n_dot =  .... (computed as function of torque)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% set u_d = U_ref = 9 m/s
+% compute n_d and Td from 6.136(?)
+
+K_m = 0.6;
+T_m = 10; 
+I_m = 100000;
+tau = 0;
+
+n_d = 10; % desired shaft speed. Where do we get this from???
+Qd = rho*Dia^5*KQ*abs(nd)*nd; % desired torque from eq 9.8
+
+Y = Qd/K_m; % correct??
+Q_m =K_m*Y-Q_m_dot_
+Q_f = 0; 
+n_dot = (Q_m - Q - Q_f)/I_m;
+
+
 n_dot = (1/10) * (n_c - n);
 
 xdot = [nu_dot' eta_dot' delta_dot n_dot]';
 u = [delta_c n_c]';
 end
+
+% Questions
+% - How do we get n_d?
+% - Why divide by K_m to get Y, then multiply by K_m to get Q_m?
+% - How do we get Q_f?
+% - How do we get n_d in task 1e, and how is it sent to the ship function? 
+% - What is t in the equation en task 1d? 
+% - How to get Qm ?? 
