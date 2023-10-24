@@ -34,17 +34,20 @@ for i=1:Ns+1
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 2, 1a) Add current disturbance here 49
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Vc = 100;
+
+    psi = x(6);
+    Vc = 1;
+    % Vc = 0;
     beta_Vc = deg2rad(45); 
-    u_c = Vc*cos(beta_Vc);
-    v_c = Vc*sin(beta_Vc);
+    u_c = Vc*cos(beta_Vc - psi);
+    v_c = Vc*sin(beta_Vc - psi);
 
     nu_c = [ u_c v_c 0 ]';
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 2, 1c) Add wind disturbance here 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    V_w = 10; 
+    V_w = 10;
     beta_V_w = deg2rad(135);
     c_y = 0.95; 
     c_n = 0.15; 
@@ -65,9 +68,9 @@ for i=1:Ns+1
         Ywind = 0; 
         Nwind = 0;
     end 
-    Ywind = 0; 
-    Nwind = 0;
+
     tau_wind = [0 Ywind Nwind]';
+    % tau_wind = zeros(3,1);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 2, 2d) Add a reference model here 
@@ -154,7 +157,7 @@ subplot(311)
 plot(y,x,'linewidth',2); axis('equal')
 title('North-East positions (m)'); xlabel('(m)'); ylabel('(m)'); 
 subplot(312)
-plot(t,psi,t,psi_d,'linewidth',2);
+plot(t,psi_deg,t,psi_d,'linewidth',2);
 title('Actual and desired yaw angles (deg)'); xlabel('time (s)');
 subplot(313)
 plot(t,r,t,r_d,'linewidth',2);
