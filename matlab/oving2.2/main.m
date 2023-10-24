@@ -84,6 +84,7 @@ for i=1:Ns+1
     % r_d = xd(2);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+    psi_ref = 
     xd_dot = ref_model(xd, psi_ref(i));
     psi_d  = xd(1);
     r_d    = xd(2);
