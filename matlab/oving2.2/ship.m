@@ -1,6 +1,6 @@
-function [xdot,u] = ship(x,u,nu_c,tau_ext)
+function [xdot,u] = ship(x,u,n_d, nu_c, tau_ext)
 % [xdot,u] = ship(x,u,nu_c,tau_ext) returns the time derivative of the state vector: 
-% x = [ u v r x y psi delta n ]' for a ship with L = 161 m where:
+% x = [ u v r x y psi delta n Q_m] for a ship with L = 161 m where:
 %
 % u     = surge velocity, must be positive  (m/s)    
 % v     = sway velocity                     (m/s)
@@ -31,7 +31,7 @@ function [xdot,u] = ship(x,u,nu_c,tau_ext)
 % Date:      date
 
 % Check of input and state dimensions
-if (length(x)~= 8),error('x-vector must have dimension 8 !');end
+if (length(x)~= 9),error('x-vector must have dimension 8 !');end
 if (length(u)~= 2),error('u-vector must have dimension 2 !');end
 
 % Dimensional states and input
@@ -42,6 +42,7 @@ nu    = x(1:3);
 eta   = x(4:6);
 delta = x(7);
 n     = x(8); 
+Q_m   = x(9); 
 
 nu_r = nu - nu_c;
 uc = nu_c(1);
@@ -155,8 +156,6 @@ d = -[Xns Ycf Ncf]';
 thr = rho*Dia^4*KT*J_a*abs(n)*n;
 Q = rho*Dia^4*KQ*J_a*abs(n)*n;
 
-thr = rho * Dia^4 * KT * abs(n) * n;    % thrust command (N)
-
 % ship dynamics
 R = Rzyx(0,0,eta(3));
 u = [ thr delta ]';
@@ -187,26 +186,27 @@ K_m = 0.6;
 T_m = 10; 
 I_m = 100000;
 tau = 0;
+ 
+Q_d = rho*Dia^5*KQ*abs(n_d)*n_d; % desired torque from eq 9.8
+Y = Q_d/K_m; % see fig 1 in assignemtn 2 part 3
+Q_m_dot = 1/T_m * (-Q_m + K_m*Y);  %realization of the transfer fucntion H(s)
 
-n_d = 10; % desired shaft speed. Where do we get this from???
-Qd = rho*Dia^5*KQ*abs(nd)*nd; % desired torque from eq 9.8
-
-Y = Qd/K_m; % correct??
-Q_m =K_m*Y-Q_m_dot_
-Q_f = 0; 
+Q_f = 0; % correct? - can try, it will probably not have much affect. There is a formula in the book somewhere.  
 n_dot = (Q_m - Q - Q_f)/I_m;
 
 
-n_dot = (1/10) * (n_c - n);
+% n_dot = (1/10) * (n_c - n); Outdated modelling of propeller dynamics
 
-xdot = [nu_dot' eta_dot' delta_dot n_dot]';
+xdot = [nu_dot' eta_dot' delta_dot n_dot Q_m_dot]';
 u = [delta_c n_c]';
 end
 
 % Questions
-% - How do we get n_d?
-% - Why divide by K_m to get Y, then multiply by K_m to get Q_m?
-% - How do we get Q_f?
-% - How do we get n_d in task 1e, and how is it sent to the ship function? 
-% - What is t in the equation en task 1d? 
-% - How to get Qm ?? 
+% - How do we get n_d? - design a feedback loop in task f
+% - Why divide by K_m to get Y, then multiply by K_m to get Q_m? - we want
+% H to have gain 1. 
+% - How do we get Q_f? - set to zero, or find formula in the book 
+% - What is t in the equation en task 1d? - a factor between 0.05-2 due to
+% extra resitance on the hull caused by the propeller
+% - How to get Qm ?? - need extra states? - yes
+

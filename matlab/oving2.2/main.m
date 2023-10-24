@@ -10,7 +10,7 @@ addpath(genpath('flypath3d_v2'))
 % USER INPUTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 h  = 0.1;    % sampling time [s]
-Ns = 10000;    % no. of samples
+Ns = 100;    % no. of samples
 
 % Set psi_ref to be 10 degrees for the first half of the simulation, and -30 for the second half
 psi_ref = [deg2rad(10)*ones(1,Ns/2 + 1) deg2rad(-20)*ones(1,Ns/2)]; % reference course angle
@@ -22,15 +22,20 @@ eta_0 = [0 0 0]';
 nu_0  = [0 0 0]';
 delta_0 = 0;
 n_0 = 0;
+
 x = [nu_0' eta_0' delta_0 n_0]';
 xd = [0 0 0]';            % initial reference
 e_int = 0;       % initial error integral
 
 
+Q_m_0 = 0; 
+x = [nu_0' eta_0' delta_0 n_0 Q_m_0]';
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MAIN LOOP
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-simdata = zeros(Ns+1,14);       % table of simulation data
+simdata = zeros(Ns+1,15);       % table of simulation data
 wait_bar = waitbar(0, 'Starting');
 for i=1:Ns+1
     
@@ -122,14 +127,8 @@ for i=1:Ns+1
     % The result should look like this:
     % n_c = open_loop_speed_control(U_ref);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    % Part 3, 1d) If we assume that
-    % - the velocity vector has a non zero component only in the x direction,
-    % - the velocity is constant
-    % - The square of the rudder angle is close to zero
-    % then we can compute cruise speed as stated in the assignment. 
-    % This is readily seen from equation 6.136. 
-    n_c = 10;                   % propeller speed (rps)
+    U_ref = 9; %[m/s]
+    n_c = open_loop_speed_control(U_ref);                % propeller speed (rps)
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 3, 1f) Replace the open loop speed controller, 
@@ -142,10 +141,10 @@ for i=1:Ns+1
     
     % ship dynamics
     u = [delta_c n_c]';
-    [xdot,u] = ship(x,u,nu_c,tau_wind);
+    [xdot,u] = ship(x,u,n_c,nu_c,tau_wind); 
     
     % store simulation data in a table (for testing)
-    simdata(i,:) = [t x(1:3)' x(4:6)' x(7) x(8) u(1) u(2) u_d psi_d r_d];     
+    simdata(i,:) = [t x(1:3)' x(4:6)' x(7) x(8) x(9) u(1) u(2) u_d psi_d r_d];     
  
     % Euler integration
     x = euler2(xdot,x,h);  
