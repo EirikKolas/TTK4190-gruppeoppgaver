@@ -21,6 +21,7 @@ nu_0  = [0 0 0]';
 delta_0 = 0;
 n_0 = 0;
 x = [nu_0' eta_0' delta_0 n_0]';
+xd = [0 0 0]';            % initial reference
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MAIN LOOP
@@ -83,13 +84,11 @@ for i=1:Ns+1
     % r_d = xd(2);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    % xd_dot = ref_model(xd, psi_ref(i));
-    % psi_d  = xd(1);
-    % r_d    = xd(2);
-    % u_d    = U_ref;
-    psi_d = psi_ref;
-    r_d = 0;
-    u_d = U_ref;
+    xd_dot = ref_model(xd, psi_ref(i));
+    psi_d  = xd(1);
+    r_d    = xd(2);
+    u_d    = U_ref;
+
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 2, 2d) Add the heading controller here 
@@ -126,7 +125,8 @@ for i=1:Ns+1
     simdata(i,:) = [t x(1:3)' x(4:6)' x(7) x(8) u(1) u(2) u_d psi_d r_d];     
  
     % Euler integration
-    x = euler2(xdot,x,h);    
+    x = euler2(xdot,x,h);  
+    xd = euler2(xd_dot,xd,h);  
 
     waitbar(i/(Ns+1), wait_bar, sprintf('Progress: %d %%', floor(i/(Ns+1)*100)));
 end
