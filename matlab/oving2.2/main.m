@@ -12,7 +12,9 @@ addpath(genpath('flypath3d_v2'))
 h  = 0.1;    % sampling time [s]
 Ns = 10000;    % no. of samples
 
-psi_ref = 10 * pi/180;  % desired yaw angle (rad)
+% Set psi_ref to be 10 degrees for the first half of the simulation, and -30 for the second half
+psi_ref = [deg2rad(10)*ones(1,Ns/2 + 1) deg2rad(-20)*ones(1,Ns/2)]; % reference course angle
+
 U_ref   = 7;            % desired surge speed (m/s)
 
 % initial states
@@ -22,6 +24,7 @@ delta_0 = 0;
 n_0 = 0;
 x = [nu_0' eta_0' delta_0 n_0]';
 xd = [0 0 0]';            % initial reference
+e_int = 0;       % initial error integral
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MAIN LOOP
@@ -84,7 +87,6 @@ for i=1:Ns+1
     % r_d = xd(2);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    psi_ref = 
     xd_dot = ref_model(xd, psi_ref(i));
     psi_d  = xd(1);
     r_d    = xd(2);
@@ -98,7 +100,13 @@ for i=1:Ns+1
     % The result should look like this:
     % delta_c = PID_heading(e_psi,e_r,e_int);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    delta_c = 0.1;              % rudder angle command (rad)
+    e_psi = psi_d - x(6);
+    e_r = r_d - x(3);
+    e_int = e_int + e_psi*h;
+    
+    delta_c = PID_heading(e_psi, e_r, e_int); 
+    
+    %delta_c = 0.1;              % rudder angle command (rad)
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 3, 1e) Add open loop speed control here
@@ -196,6 +204,8 @@ plot(t,beta_deg,'linewidth',2); hold on;
 plot(t,beta_c_deg,'linewidth',2);
 title('Sideslip vs. Crab Angle'); xlabel('time (s)');
 legend('Sideslip angle','Crab angle');
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 

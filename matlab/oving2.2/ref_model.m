@@ -4,7 +4,7 @@
 function xd_dot = ref_model(xd, psi_ref)
     % xd = [x y psi u v r]'
 s = tf('s');
-omega_n = 0.1;
+omega_n = 0.03;
 zeta = 0.7;
 
 % Third order reference model between psi_ref and psi_d
