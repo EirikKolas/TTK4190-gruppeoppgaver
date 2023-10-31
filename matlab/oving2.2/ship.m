@@ -1,6 +1,6 @@
 function [xdot,u] = ship(x,u,nu_c,tau_ext)
 % [xdot,u] = ship(x,u,nu_c,tau_ext) returns the time derivative of the state vector: 
-% x = [ u v r x y psi delta n ]' for a ship with L = 161 m where:
+% x = [ u v r x y psi delta n Qm ]' for a ship with L = 161 m where:
 %
 % u     = surge velocity, must be positive  (m/s)    
 % v     = sway velocity                     (m/s)
@@ -31,7 +31,7 @@ function [xdot,u] = ship(x,u,nu_c,tau_ext)
 % Date:      date
 
 % Check of input and state dimensions
-if (length(x)~= 8),error('x-vector must have dimension 8 !');end
+if (length(x)~= 9),error('x-vector must have dimension 8 !');end
 if (length(u)~= 2),error('u-vector must have dimension 2 !');end
 
 % Dimensional states and input
@@ -42,6 +42,7 @@ nu    = x(1:3);
 eta   = x(4:6);
 delta = x(7);
 n     = x(8); 
+Qm    = x(9); 
 
 nu_r = nu - nu_c;
 uc = nu_c(1);
@@ -180,8 +181,9 @@ end
 % the result should look like this:
 % n_dot =  .... (computed as function of torque)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Qm_dot = 0; 
 n_dot = (1/10) * (n_c - n);
 
-xdot = [nu_dot' eta_dot' delta_dot n_dot]';
+xdot = [nu_dot' eta_dot' delta_dot n_dot Qm_dot]';
 u = [delta_c n_c]';
 end
