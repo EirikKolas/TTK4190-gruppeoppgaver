@@ -66,11 +66,11 @@ rho = 1025;             % density of water (m/s^3)
 % The result should look like this:
 % [KT,KQ] = wageningen(...);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% J_a = 0; 
-% PD = 1.5;   %pitch diameter ratio
-% BAR = 0.65; %blade area ratio
-% z = 4; %number of blades
-% [KT, KQ] = wageningen(J_a,PD,BAR,z);
+J_a = 0; 
+PD = 1.5;   %pitch diameter ratio
+BAR = 0.65; %blade area ratio
+z = 4; %number of blades
+[KT, KQ] = wageningen(J_a,PD,BAR,z);
 
 % rudder limitations
 delta_max  = 40 * pi/180;        % max rudder angle      (rad)
@@ -153,9 +153,6 @@ d = -[Xns Ycf Ncf]';
 % thr = ....
 % Q = ....
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%thr = 
-%Q=
-
 thr = rho * Dia^4 * KT * abs(n) * n;    % thrust command (N)
 
 % ship dynamics
@@ -181,8 +178,18 @@ end
 % the result should look like this:
 % n_dot =  .... (computed as function of torque)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Qm_dot = 0; 
-n_dot = (1/10) * (n_c - n);
+% Qm_dot = 0; 
+% n_dot = (1/10) * (n_c - n);
+
+K_m = 0.6;
+T_m = 10; 
+I_m = 100000;
+
+Q   = rho*Dia^5*KQ*abs(n)*n;     % torque from eq 9.8
+Q_d = rho*Dia^5*KQ*abs(n_c)*n_c; % desired torque from eq 9.8
+Y = Q_d/K_m; % see fig 1 in assignemtn 2 part 3
+Qm_dot = 1/T_m * (-Qm + K_m*Y);  %realization of the transfer fucntion H(s)  
+n_dot = (Qm - Q)/I_m;
 
 xdot = [nu_dot' eta_dot' delta_dot n_dot Qm_dot]';
 u = [delta_c n_c]';
