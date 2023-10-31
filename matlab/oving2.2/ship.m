@@ -149,9 +149,6 @@ d = -[Xns Ycf Ncf]';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Part 3, 1b) compute thrust and torque here
-%
-% thr = ....
-% Q = ....
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 thr = rho * Dia^4 * KT * abs(n) * n;    % thrust command (N)
 

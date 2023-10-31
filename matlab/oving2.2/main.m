@@ -13,7 +13,8 @@ h  = 0.1;    % sampling time [s]
 Ns = 10000;    % no. of samples
 
 % Set psi_ref to be 10 degrees for the first half of the simulation, and -30 for the second half
-psi_ref = [deg2rad(10)*ones(1,Ns/2 + 1) deg2rad(-20)*ones(1,Ns/2)]; % reference course angle
+% psi_ref = [deg2rad(10)*ones(1,Ns/2 + 1) deg2rad(-20)*ones(1,Ns/2)]; % reference course angle
+psi_ref = deg2rad(10)*ones(1,Ns + 1); % reference course angle
 
 U_ref   = 9;            % desired surge speed (m/s)
 
@@ -124,8 +125,8 @@ for i=1:Ns+1
     % The result should look like this:
     % n_c = open_loop_speed_control(U_ref);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    n_c = 10;                   % propeller speed (rps)
-%     n_c = open_loop_speed_control(U_ref);
+%     n_c = 10;                   % propeller speed (rps)
+    n_c = open_loop_speed_control(U_ref);
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
