@@ -13,7 +13,7 @@ Xu = -(m-Xudot)/T1;
 t = 0.05; 
 
 % compute desired torque based on simplified linear model for surge
-Td = U_ref*Xu/(t-1);
+
 
 % compute toque coefficient 
 J_a = 0; 
@@ -23,6 +23,9 @@ z = 4; %number of blades
 [KT, KQ] = wageningen(J_a,PD,BAR,z);
 
 % compute desired turtall based on eq 9.7 in Fossen
-n_c = sign(Td)*sqrt(sign(Td)*Td/(rho*(Dia^4)*KT));
+Td = U_ref*Xu/(t-1);
+% n_c = sign(Td)*sqrt(sign(Td)*Td/(rho*(Dia^4)*KT));
+
+n_c = sqrt(Td/(rho*Dia^4*KT))*sign(Td)*KT; 
 
 end
