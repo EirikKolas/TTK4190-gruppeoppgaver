@@ -185,13 +185,14 @@ figure(gcf)
 subplot(311)
 plot(t,u,t,u_d,'linewidth',2);
 title('Actual and desired surge velocities (m/s)'); xlabel('time (s)');
-legend()
+legend(["Actual surge velocity", "Desired surge velocity"])
 subplot(312)
 plot(t,n_0,t,n_c,'linewidth',2);
 title('Actual and commanded propeller speed (rpm)'); xlabel('time (s)');
 subplot(313)
 plot(t,delta_0,t,delta_c,'linewidth',2);
 title('Actual and commanded rudder angles (deg)'); xlabel('time (s)');
+legend(["Actual rudder angle", "Commanded rudder angle"])
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Own plots
