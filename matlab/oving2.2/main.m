@@ -26,6 +26,18 @@ x = [nu_0' eta_0' delta_0 n_0]';
 xd = [0 0 0]';            % initial reference
 e_int = 0;       % initial error integral
 
+%reference model
+% s = tf('s');
+ omega_n = 0.03;
+ zeta = 0.7;
+% % Third order reference model between psi_ref and psi_d
+% sys = omega_n^3/((s + omega_n)*(s^2 + 2*zeta*omega_n*s + omega_n^2));
+% [A, B] = tf2ss(sys.Numerator{1}, sys.Denominator{1});
+
+%See equations 15.145-15.147
+A = [0 1 0; 0 0 1;-omega_n^3 -(2*zeta+1)*omega_n^2 -(2*zeta+1)*omega_n];
+B = [0 ; 0; omega_n^3];
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MAIN LOOP
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -87,7 +99,7 @@ for i=1:Ns+1
     % r_d = xd(2);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    xd_dot = ref_model(xd, psi_ref(i));
+    xd_dot = ref_model(xd, psi_ref(i), A, B);
     psi_d  = xd(1);
     r_d    = xd(2);
     u_d    = U_ref;
