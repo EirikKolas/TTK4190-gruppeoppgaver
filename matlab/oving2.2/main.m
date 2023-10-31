@@ -107,11 +107,11 @@ for i=1:Ns+1
     % The result should look like this:
     % delta_c = PID_heading(e_psi,e_r,e_int);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    e_psi = psi_d - psi;
-    e_r = r_d - r;
+    e_psi = psi - psi_d;
+    e_r = r - r_d;
     e_int = e_int + e_psi*h;
     
-    delta_c = PID_heading(-e_psi, -e_r, -e_int); 
+    delta_c = PID_heading(e_psi, e_r, e_int); 
     
     %delta_c = 0.1;              % rudder angle command (rad)
 
