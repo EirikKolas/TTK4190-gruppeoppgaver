@@ -1,4 +1,4 @@
-function [xdot,u] = ship(x,u,n_d, nu_c, tau_ext)
+function [xdot,u] = ship(x,u,nu_c, tau_ext)
 % [xdot,u] = ship(x,u,nu_c,tau_ext) returns the time derivative of the state vector: 
 % x = [ u v r x y psi delta n Q_m] for a ship with L = 161 m where:
 %
@@ -153,8 +153,8 @@ d = -[Xns Ycf Ncf]';
 % thr = ....
 % Q = ....
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-thr = rho*Dia^4*KT*J_a*abs(n)*n;
-Q = rho*Dia^4*KQ*J_a*abs(n)*n;
+thr = rho*Dia^4*KT*abs(n)*n;
+Q = rho*Dia^5*KQ*abs(n)*n;
 
 % ship dynamics
 R = Rzyx(0,0,eta(3));
@@ -187,7 +187,7 @@ T_m = 10;
 I_m = 100000;
 tau = 0;
  
-Q_d = rho*Dia^5*KQ*abs(n_d)*n_d; % desired torque from eq 9.8
+Q_d = rho*Dia^5*KQ*abs(n_c)*n_c; % desired torque from eq 9.8
 Y = Q_d/K_m; % see fig 1 in assignemtn 2 part 3
 Q_m_dot = 1/T_m * (-Q_m + K_m*Y);  %realization of the transfer fucntion H(s)
 

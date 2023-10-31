@@ -9,13 +9,14 @@ addpath(genpath('flypath3d_v2'))
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % USER INPUTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-h  = 0.1;    % sampling time [s]
-Ns = 100;    % no. of samples
+h  = 1;    % sampling time [s]
+Ns = 1000;    % no. of samples
 
 % Set psi_ref to be 10 degrees for the first half of the simulation, and -30 for the second half
 psi_ref = [deg2rad(10)*ones(1,Ns/2 + 1) deg2rad(-20)*ones(1,Ns/2)]; % reference course angle
 
-U_ref   = 7;            % desired surge speed (m/s)
+%U_ref   = 7;            % desired surge speed (m/s)
+U_ref = 9; %[m/s]
 
 % initial states
 eta_0 = [0 0 0]';
@@ -23,13 +24,20 @@ nu_0  = [0 0 0]';
 delta_0 = 0;
 n_0 = 0;
 
-x = [nu_0' eta_0' delta_0 n_0]';
+Q_m_0 = 0; 
+x = [nu_0' eta_0' delta_0 n_0 Q_m_0]';
 xd = [0 0 0]';            % initial reference
 e_int = 0;       % initial error integral
 
 
-Q_m_0 = 0; 
-x = [nu_0' eta_0' delta_0 n_0 Q_m_0]';
+%reference model %See equations 15.145-15.147
+ omega_n = 0.03;
+ zeta = 0.7;
+A_ref_model = [0 1 0; 0 0 1;-omega_n^3 -(2*zeta+1)*omega_n^2 -(2*zeta+1)*omega_n];
+B_ref_model= [0 ; 0; omega_n^3];
+
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,7 +62,6 @@ for i=1:Ns+1
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     Vc = 1;
-    % Vc = 0;
     beta_Vc = deg2rad(45); 
     u_c = Vc*cos(beta_Vc - psi);
     v_c = Vc*sin(beta_Vc - psi);
@@ -100,6 +107,7 @@ for i=1:Ns+1
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     xd_dot = ref_model(xd, psi_ref(i));
+
     psi_d  = xd(1);
     r_d    = xd(2);
     u_d    = U_ref;
@@ -116,7 +124,7 @@ for i=1:Ns+1
     e_r = r - r_d;
     e_int = e_int + e_psi*h;
     
-    delta_c = PID_heading(e_psi, e_r, e_int); 
+    delta_c = PID_heading(-e_psi, -e_r, -e_int); 
     
     %delta_c = 0.1;              % rudder angle command (rad)
 
@@ -127,7 +135,6 @@ for i=1:Ns+1
     % The result should look like this:
     % n_c = open_loop_speed_control(U_ref);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    U_ref = 9; %[m/s]
     n_c = open_loop_speed_control(U_ref);                % propeller speed (rps)
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -141,7 +148,7 @@ for i=1:Ns+1
     
     % ship dynamics
     u = [delta_c n_c]';
-    [xdot,u] = ship(x,u,n_c,nu_c,tau_wind); 
+    [xdot,u] = ship(x,u,nu_c,tau_wind); 
     
     % store simulation data in a table (for testing)
     simdata(i,:) = [t x(1:3)' x(4:6)' x(7) x(8) x(9) u(1) u(2) u_d psi_d r_d];     
@@ -157,13 +164,13 @@ simdata = simdata(1:i,:);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PLOTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-t       = simdata(:,1);                 % s
-u       = simdata(:,2);                 % m/s
-v       = simdata(:,3);                 % m/s
+t       = simdata(:,1);                % s
+u       = simdata(:,2);                % m/s
+v       = simdata(:,3);                % m/s
 r       = (180/pi) * simdata(:,4);      % deg/s
-x       = simdata(:,5);                 % m
-y       = simdata(:,6);                 % m
-psi     = simdata(:,7);                 % rad
+x       = simdata(:,5)     ;             % m
+y       = simdata(:,6)   ;              % m
+psi     = simdata(:,7) ;                 % rad
 psi_deg = (180/pi) * psi;               % deg
 delta_0 = (180/pi) * simdata(:,8);      % deg
 n_0     = 60 * simdata(:,9);            % rpm
