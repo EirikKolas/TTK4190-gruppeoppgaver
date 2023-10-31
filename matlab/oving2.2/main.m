@@ -26,17 +26,6 @@ x = [nu_0' eta_0' delta_0 n_0]';
 xd = [0 0 0]';            % initial reference
 e_int = 0;       % initial error integral
 
-%reference model
-% s = tf('s');
- omega_n = 0.03;
- zeta = 0.7;
-% % Third order reference model between psi_ref and psi_d
-% sys = omega_n^3/((s + omega_n)*(s^2 + 2*zeta*omega_n*s + omega_n^2));
-% [A, B] = tf2ss(sys.Numerator{1}, sys.Denominator{1});
-
-%See equations 15.145-15.147
-A = [0 1 0; 0 0 1;-omega_n^3 -(2*zeta+1)*omega_n^2 -(2*zeta+1)*omega_n];
-B = [0 ; 0; omega_n^3];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MAIN LOOP
@@ -46,12 +35,19 @@ wait_bar = waitbar(0, 'Starting');
 for i=1:Ns+1
     
     t = (i-1) * h;              % time (s)
+    u     = x(1); % surge velocity, must be positive  (m/s)    
+    v     = x(2); % sway velocity                     (m/s)
+    r     = x(3); % yaw velocity                      (rad/s)
+    % x     = x(4); % position in x-direction           (m)
+    % y     = x(5); % position in y-direction           (m)
+    psi   = x(6); % yaw angle                         (rad)
+    delta = x(7); % actual rudder angle               (rad)
+    n     = x(8); % actual shaft velocity             (rpm)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 2, 1a) Add current disturbance here 49
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    psi = x(6);
     Vc = 1;
     % Vc = 0;
     beta_Vc = deg2rad(45); 
@@ -69,7 +65,6 @@ for i=1:Ns+1
     c_n = 0.15; 
     L = 161; 
     A_L_w = 10*L;
-    psi = x(6);
     rho_a = 1.247; 
     q = 0.5*rho_a*V_w^2; 
     gamma_w = psi-beta_V_w-pi;
@@ -99,7 +94,7 @@ for i=1:Ns+1
     % r_d = xd(2);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    xd_dot = ref_model(xd, psi_ref(i), A, B);
+    xd_dot = ref_model(xd, psi_ref(i));
     psi_d  = xd(1);
     r_d    = xd(2);
     u_d    = U_ref;
@@ -112,11 +107,11 @@ for i=1:Ns+1
     % The result should look like this:
     % delta_c = PID_heading(e_psi,e_r,e_int);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    e_psi = psi_d - x(6);
-    e_r = r_d - x(3);
+    e_psi = psi_d - psi;
+    e_r = r_d - r;
     e_int = e_int + e_psi*h;
     
-    delta_c = PID_heading(e_psi, e_r, e_int); 
+    delta_c = PID_heading(-e_psi, -e_r, -e_int); 
     
     %delta_c = 0.1;              % rudder angle command (rad)
 
@@ -180,6 +175,7 @@ title('North-East positions (m)'); xlabel('(m)'); ylabel('(m)');
 subplot(312)
 plot(t,psi_deg,t,psi_d,'linewidth',2);
 title('Actual and desired yaw angles (deg)'); xlabel('time (s)');
+legend(["Actual yaw angle", "Desired yaw angle"])
 subplot(313)
 plot(t,r,t,r_d,'linewidth',2);
 title('Actual and desired yaw rates (deg/s)'); xlabel('time (s)');
