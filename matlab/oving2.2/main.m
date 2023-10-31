@@ -179,6 +179,7 @@ legend(["Actual yaw angle", "Desired yaw angle"])
 subplot(313)
 plot(t,r,t,r_d,'linewidth',2);
 title('Actual and desired yaw rates (deg/s)'); xlabel('time (s)');
+legend(["Actual yaw rate", "Desired yaw rate"])
 
 figure(3)
 figure(gcf)
@@ -189,6 +190,7 @@ legend(["Actual surge velocity", "Desired surge velocity"])
 subplot(312)
 plot(t,n_0,t,n_c,'linewidth',2);
 title('Actual and commanded propeller speed (rpm)'); xlabel('time (s)');
+legend(["Actual propeller speed", "Commanded propeller speed"])
 subplot(313)
 plot(t,delta_0,t,delta_c,'linewidth',2);
 title('Actual and commanded rudder angles (deg)'); xlabel('time (s)');
