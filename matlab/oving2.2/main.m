@@ -18,6 +18,12 @@ psi_ref = deg2rad(10)*ones(1,Ns + 1); % reference course angle
 
 U_ref   = 9;            % desired surge speed (m/s)
 
+% nu    = x(1:3);
+% eta   = x(4:6);
+% delta = x(7);
+% n     = x(8); 
+% Qm    = x(9);
+
 % initial states
 eta_0 = [0 0 0]';
 nu_0  = [0 0 0]';
@@ -27,6 +33,11 @@ Qm_0 = 0;
 x = [nu_0' eta_0' delta_0 n_0 Qm_0]';
 xd = [0 0 0]';            % initial reference
 e_int = 0;       % initial error integral
+
+
+load('WP.mat');
+wp_index = 0; 
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -96,7 +107,14 @@ for i=1:Ns+1
     % r_d = xd(2);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    xd_dot = ref_model(xd, psi_ref(i));
+% %     Guidance law
+    [xk1,yk1,xk,yk,wp_index] = wp_selector(x(4),x(5), wp_index);
+    [e_y,pi_p] = crossTrackError(xk1,yk1,xk,yk,x(4),x(5));
+    chi_d = LOS_guidance(e_y,pi_p);
+    psi_ref = chi_d;
+
+
+    xd_dot = ref_model(xd, psi_ref);
     psi_d  = xd(1);
     r_d    = xd(2);
     u_d    = U_ref;
