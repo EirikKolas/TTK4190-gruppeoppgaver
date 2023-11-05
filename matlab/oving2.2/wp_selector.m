@@ -1,4 +1,4 @@
-function [xk1, yk1, xk, yk, prev_index] = wp_selector(x, y, prev_index)
+function [xk1, yk1, xk, yk, prev_index] = wp_selector(x, y, prev_index, WP)
 
 % x - north position of the ship
 % y - east position of the ship
@@ -8,30 +8,27 @@ function [xk1, yk1, xk, yk, prev_index] = wp_selector(x, y, prev_index)
 % arrived_at_final_wp - boolean flag
 
 min_dist = 1;
+next_index = prev_index + 1;
 
-% Check if the next index is within the bounds of the waypoint array
-if prev_index < length(WP)
-    next_index = prev_index + 1;
-    next_wp = WP(next_index, :);
-    
+% Only if the next index is within the bounds of the waypoint array, we
+% search for next waypoint. 
+if prev_index < (length(WP) - 1)
     % Compute distance to the next waypoint
+    next_wp = WP(next_index, :);
     dist = sqrt((x - next_wp(1))^2 + (y - next_wp(2))^2);
 
+    % if the ship is sufficiently close, then we move on to the next
+    % waypoint. 
     if dist < min_dist
-        prev_index = next_index;
-
+        prev_index = next_index; 
+        next_index = next_index + 1;
     end
+end
 
-    % Extract previous and next waypoints
-    xk1 = WP(next_index, 1);
-    yk1 = WP(next_index, 2);
+% Extract previous and next waypoints
+xk1 = WP(next_index, 1);
+yk1 = WP(next_index, 2);
 
-    xk = WP(prev_index, 1);
-    yk = WP(prev_index, 2);
-else
-    % Handle the case where prev_index is out of bounds
-    xk1 = x;
-    yk1 = y;
-    xk = x;
-    yk = y;
+xk = WP(prev_index, 1);
+yk = WP(prev_index, 2);
 end

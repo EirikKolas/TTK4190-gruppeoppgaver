@@ -36,7 +36,7 @@ e_int = 0;       % initial error integral
 
 
 load('WP.mat');
-wp_index = 0; 
+wp_index = 1; 
 
 
 
@@ -107,10 +107,11 @@ for i=1:Ns+1
     % r_d = xd(2);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% %     Guidance law
-    [xk1,yk1,xk,yk,wp_index] = wp_selector(x(4),x(5), wp_index);
-    [e_y,pi_p] = crossTrackError(xk1,yk1,xk,yk,x(4),x(5));
-    chi_d = LOS_guidance(e_y,pi_p);
+    %     Guidance law
+    [xk1,yk1,xk,yk,wp_index] = wp_selector(x(4),x(5), wp_index, WP);
+    [x_p, y_p, y_e] = crosstrack(xk1,yk1,xk,yk,x(4),x(5)); 
+    pi_p = atan2(yk1 - yk, xk1 - xk); 
+    chi_d = LOS_guidance(y_e,pi_p);
     psi_ref = chi_d;
 
 
