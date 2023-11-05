@@ -7,7 +7,7 @@ function [xk1, yk1, xk, yk, prev_index] = wp_selector(x, y, prev_index, WP)
 % xk, yk - position of last waypoint
 % arrived_at_final_wp - boolean flag
 
-min_dist = 1;
+min_dist = 1e03;
 next_index = prev_index + 1;
 
 % Only if the next index is within the bounds of the waypoint array, we
