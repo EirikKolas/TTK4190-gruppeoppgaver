@@ -109,8 +109,8 @@ for i=1:Ns+1
 
     %     Guidance law
     [xk1,yk1,xk,yk,wp_index] = wp_selector(x(4),x(5), wp_index, WP);
-    [x_p, y_p, y_e] = crosstrack(xk1,yk1,xk,yk,x(4),x(5)); 
-    pi_p = atan2(yk1 - yk, xk1 - xk); 
+    [x_p, y_p, y_e] = crosstrack(xk1,yk1,xk,yk,x(4),x(5));
+    pi_p = atan2(yk1 - yk, xk1 - xk);
     chi_d = LOS_guidance(y_e,pi_p);
     psi_ref = chi_d;
 
@@ -144,8 +144,8 @@ for i=1:Ns+1
     % The result should look like this:
     % n_c = open_loop_speed_control(U_ref);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     n_c = 10;                   % propeller speed (rps)
-    n_c = open_loop_speed_control(U_ref);
+    n_c = 10;                   % propeller speed (rps)
+%     n_c = open_loop_speed_control(U_ref);
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
