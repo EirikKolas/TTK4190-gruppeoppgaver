@@ -13,26 +13,32 @@ h  = 0.1;    % sampling time [s]
 Ns = 10000;    % no. of samples
 
 % Set psi_ref to be 10 degrees for the first half of the simulation, and -30 for the second half
-% psi_ref = [deg2rad(10)*ones(1,Ns/2 + 1) deg2rad(-20)*ones(1,Ns/2)]; % reference course angle
-psi_ref = deg2rad(10)*ones(1,Ns + 1); % reference course angle
+psi_ref = [deg2rad(10)*ones(1,Ns/2 + 1) deg2rad(-20)*ones(1,Ns/2)]; % reference course angle
+% psi_ref = deg2rad(10)*ones(1,Ns + 1); % reference course angle
 
 U_ref   = 9;            % desired surge speed (m/s)
 
 % initial states
-eta_0 = [0 0 0]';
+psi_0 = deg2rad(-110); % initial yaw angle
+
+eta_0 = [0 0 psi_0]';
 nu_0  = [0 0 0]';
 delta_0 = 0;
 n_0 = 0;
 Qm_0 = 0; 
 x = [nu_0' eta_0' delta_0 n_0 Qm_0]';
-xd = [0 0 0]';            % initial reference
+xd = [psi_0 0 0]';            % initial reference
 e_int = 0;       % initial error integral
+
+% measurements
+sigma_yaw = deg2rad(0.5); % [rad]
+sigma_yaw_rate = deg2rad(0.1); % [rad/s]
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MAIN LOOP
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-simdata = zeros(Ns+1,14);       % table of simulation data
+simdata = zeros(Ns+1,16);       % table of simulation data
 wait_bar = waitbar(0, 'Starting');
 for i=1:Ns+1
     
@@ -110,7 +116,7 @@ for i=1:Ns+1
     % delta_c = PID_heading(e_psi,e_r,e_int);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %delta_c = 0.1;              % rudder angle command (rad)
-    e_psi = psi - psi_d;
+    e_psi = ssa(psi - psi_d);
     e_r = r - r_d;
     e_int = e_int + e_psi*h;
     
@@ -125,8 +131,8 @@ for i=1:Ns+1
     % The result should look like this:
     % n_c = open_loop_speed_control(U_ref);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     n_c = 10;                   % propeller speed (rps)
-    n_c = open_loop_speed_control(U_ref);
+    n_c = 10;                   % propeller speed (rps)
+    %n_c = open_loop_speed_control(U_ref);
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -141,13 +147,19 @@ for i=1:Ns+1
     % ship dynamics
     u = [delta_c n_c]';
     [xdot,u] = ship(x,u,nu_c,tau_wind);
+
+    % measurements
+    psi_meas = normrnd(psi,sigma_yaw);  % yaw
+    r_meas = normrnd(r,sigma_yaw_rate); % yaw rate
     
     % store simulation data in a table (for testing)
-    simdata(i,:) = [t x(1:3)' x(4:6)' x(7) x(8) u(1) u(2) u_d psi_d r_d];     
+    simdata(i,:) = [t x(1:3)' x(4:6)' x(7) x(8) u(1) u(2) u_d psi_d r_d psi_meas r_meas];     
  
     % Euler integration
     x = euler2(xdot,x,h);  
     xd = euler2(xd_dot,xd,h);  
+
+
 
     waitbar(i/(Ns+1), wait_bar, sprintf('Progress: %d %%', floor(i/(Ns+1)*100)));
 end
@@ -156,21 +168,23 @@ simdata = simdata(1:i,:);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PLOTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-t       = simdata(:,1);                 % s
-u       = simdata(:,2);                 % m/s
-v       = simdata(:,3);                 % m/s
-r       = (180/pi) * simdata(:,4);      % deg/s
-x       = simdata(:,5);                 % m
-y       = simdata(:,6);                 % m
-psi     = simdata(:,7);                 % rad
-psi_deg = (180/pi) * psi;               % deg
-delta_0 = (180/pi) * simdata(:,8);      % deg
-n_0     = 60 * simdata(:,9);            % rpm
-delta_c = (180/pi) * simdata(:,10);     % deg
-n_c     = 60 * simdata(:,11);           % rpm
-u_d     = simdata(:,12);                % m/s
-psi_d   = (180/pi) * simdata(:,13);     % deg
-r_d     = (180/pi) * simdata(:,14);     % deg/s
+t         = simdata(:,1);                 % s
+u         = simdata(:,2);                 % m/s
+v         = simdata(:,3);                 % m/s
+r         = (180/pi) * simdata(:,4);      % deg/s
+x         = simdata(:,5);                 % m
+y         = simdata(:,6);                 % m
+psi       = simdata(:,7);                 % rad
+psi_deg   = (180/pi) * psi;               % deg
+delta_0   = (180/pi) * simdata(:,8);      % deg
+n_0       = 60 * simdata(:,9);            % rpm
+delta_c   = (180/pi) * simdata(:,10);     % deg
+n_c       = 60 * simdata(:,11);           % rpm
+u_d       = simdata(:,12);                % m/s
+psi_d     = (180/pi) * simdata(:,13);     % deg
+r_d       = (180/pi) * simdata(:,14);     % deg/s
+psi_meas  = rad2deg(simdata(:,15));       % deg
+r_meas    = rad2deg(simdata(:,16));       % deg/s
 
 figure(2)
 figure(gcf)
@@ -220,6 +234,20 @@ plot(t,beta_deg,'linewidth',2); hold on;
 plot(t,beta_c_deg,'linewidth',2);
 title('Sideslip vs. Crab Angle'); xlabel('time (s)');
 legend('Sideslip angle','Crab angle');
+% Measurement noise
+figure(5)
+figure(gcf)
+nexttile
+plot(t,psi_meas,'linewidth',2); hold on;
+plot(t,psi_deg,'linewidth',2);
+title('Yaw'); xlabel('time (s)');
+legend('Yaw angle measurement','Yaw angle');
+nexttile
+plot(t,r_meas,'linewidth',2); hold on;
+plot(t,r,'linewidth',2);
+title('Yaw rate'); xlabel('time (s)');
+legend('Yaw rate measurement','Yaw rate');
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

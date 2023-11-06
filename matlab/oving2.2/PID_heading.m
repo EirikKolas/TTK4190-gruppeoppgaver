@@ -6,6 +6,6 @@ kp = -196.6580;
 kd = -4.0855e+03; 
 ki = -1.8334; 
 
-delta_c = kp*e_psi + kd*e_r + ki*e_int;
+delta_c = kp*e_psi + kd*e_r;% + ki*e_int;
 
 end
