@@ -23,6 +23,7 @@ U_ref   = 9;            % desired surge speed (m/s)
 % delta = x(7);
 % n     = x(8); 
 % Qm    = x(9);
+% los_int = x(10); 
 
 % initial states
 eta_0 = [0 0 0]';
@@ -30,7 +31,9 @@ nu_0  = [0 0 0]';
 delta_0 = 0;
 n_0 = 0;
 Qm_0 = 0; 
-x = [nu_0' eta_0' delta_0 n_0 Qm_0]';
+los_int_0 = 0; 
+los_int_dot = 0; 
+x = [nu_0' eta_0' delta_0 n_0 Qm_0 los_int_0]';
 xd = [0 0 0]';            % initial reference
 e_int = 0;       % initial error integral
 
@@ -38,7 +41,9 @@ e_int = 0;       % initial error integral
 load('WP.mat');
 wp_index = 1; 
 
-compensate_for_crab = true; 
+compensate_for_crab = false;
+use_ILOS = false; 
+no_current = true; 
 
 
 
@@ -58,6 +63,8 @@ for i=1:Ns+1
     psi   = x(6); % yaw angle                         (rad)
     delta = x(7); % actual rudder angle               (rad)
     n     = x(8); % actual shaft velocity             (rpm)
+%     Qm    = x(9); 
+    los_int = x(10); 
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 2, 1a) Add current disturbance here 49
@@ -66,12 +73,16 @@ for i=1:Ns+1
     Vc = 1;
     % Vc = 0;
     beta_Vc = deg2rad(45); 
-    u_c = Vc*cos(beta_Vc - psi);
-    v_c = Vc*sin(beta_Vc - psi);
+    if no_current
+        u_c = 0;
+        v_c = 0;
+    else
+        u_c = Vc*cos(beta_Vc - psi);
+        v_c = Vc*sin(beta_Vc - psi);
+    end
 
     nu_c = [ u_c v_c 0 ]';
-%     nu_c = zeros(3,1); 
-    
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 2, 1c) Add wind disturbance here 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -96,8 +107,8 @@ for i=1:Ns+1
         Nwind = 0;
     end 
 
-    tau_wind = [0 Ywind Nwind]';
-    % tau_wind = zeros(3,1);
+%     tau_wind = [0 Ywind Nwind]';
+    tau_wind = zeros(3,1);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 2, 2d) Add a reference model here 
@@ -113,8 +124,20 @@ for i=1:Ns+1
     %     Guidance law
     [xk1,yk1,xk,yk,wp_index] = wp_selector(x(4),x(5), wp_index, WP);
     [y_e, pi_p] = crossTrackError(xk1,yk1,xk,yk,x(4),x(5)); 
-    crab_angle = compute_crab_angle(x(1:3)); 
-    chi_d = LOS_guidance(y_e,pi_p, crab_angle, compensate_for_crab);
+
+    if compensate_for_crab
+        crab_angle = compute_crab_angle(x(1:3));
+    else
+        crab_angle = 0; 
+    end
+
+
+    if use_ILOS
+        [chi_d, los_int_dot] = ILOS_guidance(y_e, pi_p, los_int); 
+    else
+        chi_d = LOS_guidance(y_e,pi_p, crab_angle);
+    end
+
     psi_ref = chi_d;
 
     xd_dot = ref_model(xd, psi_ref);
@@ -162,6 +185,7 @@ for i=1:Ns+1
     % ship dynamics
     u = [delta_c n_c]';
     [xdot,u] = ship(x,u,nu_c,tau_wind);
+    xdot = [xdot; los_int_dot]; 
     
     % store simulation data in a table (for testing)
     simdata(i,:) = [t x(1:3)' x(4:6)' x(7) x(8) u(1) u(2) u_d psi_d r_d];     

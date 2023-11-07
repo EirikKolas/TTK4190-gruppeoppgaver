@@ -31,7 +31,7 @@ function [xdot,u] = ship(x,u,nu_c,tau_ext)
 % Date:      date
 
 % Check of input and state dimensions
-if (length(x)~= 9),error('x-vector must have dimension 8 !');end
+if (length(x)~= 10),error('x-vector must have dimension 10 !');end
 if (length(u)~= 2),error('u-vector must have dimension 2 !');end
 
 % Dimensional states and input
