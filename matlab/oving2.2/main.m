@@ -34,6 +34,10 @@ e_int = 0;       % initial error integral
 sigma_yaw = deg2rad(0.5); % [rad]
 sigma_yaw_rate = deg2rad(0.1); % [rad/s]
 
+% initialization KF
+x_hat = x0; Qd = constant;
+P_hat = P0; Rd = constant;
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MAIN LOOP
@@ -91,6 +95,25 @@ for i=1:Ns+1
     tau_wind = [0 Ywind Nwind]';
     % tau_wind = zeros(3,1);
     
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Measurements
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    psi_meas = normrnd(psi,sigma_yaw);  % yaw
+    r_meas = normrnd(r,sigma_yaw_rate); % yaw rate
+
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % estimate
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Run KF
+    [x_pst,P_pst,x_prd,P_prd] = KF(x_est,P_est,Ad,Bd,Ed,Cd,Qd,Rd,psi_meas,delta);
+    % Redefine the errors based on the estimated states
+    e_psi = ssa(x_pst(1) - psi_d);
+    e_r = x_pst(2) - r_d;
+    e_u = x(1) - u_d;
+
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 2, 2d) Add a reference model here 
     % Define it as a function
@@ -148,9 +171,6 @@ for i=1:Ns+1
     u = [delta_c n_c]';
     [xdot,u] = ship(x,u,nu_c,tau_wind);
 
-    % measurements
-    psi_meas = normrnd(psi,sigma_yaw);  % yaw
-    r_meas = normrnd(r,sigma_yaw_rate); % yaw rate
     
     % store simulation data in a table (for testing)
     simdata(i,:) = [t x(1:3)' x(4:6)' x(7) x(8) u(1) u(2) u_d psi_d r_d psi_meas r_meas];     
@@ -234,6 +254,7 @@ plot(t,beta_deg,'linewidth',2); hold on;
 plot(t,beta_c_deg,'linewidth',2);
 title('Sideslip vs. Crab Angle'); xlabel('time (s)');
 legend('Sideslip angle','Crab angle');
+
 % Measurement noise
 figure(5)
 figure(gcf)
