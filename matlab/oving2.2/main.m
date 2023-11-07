@@ -26,7 +26,7 @@ U_ref   = 9;            % desired surge speed (m/s)
 % los_int = x(10); 
 
 % initial states
-psi_0 = deg2rad(90); % initial yaw angle
+psi_0 = deg2rad(0); % initial yaw angle
 
 eta_0 = [0 0 psi_0]';
 nu_0  = [0 0 0]';
@@ -93,7 +93,8 @@ P_est = P0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 compensate_for_crab = false;
-use_ILOS = false; 
+use_ILOS = true; 
+
 no_current = true; 
 
 
@@ -240,6 +241,10 @@ for i=1:Ns+1
     e_psi = ssa(psi - psi_d);
     e_r = r - r_d;
     e_int = e_int + e_psi*h;
+    % anti-windup
+    max_int = 1000;
+    e_int = max(min(e_int, max_int), -max_int);
+    
     e_u = x(1) - u_d;
     
     delta_c = PID_heading(e_psi, e_r, e_int); 
