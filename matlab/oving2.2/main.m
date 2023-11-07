@@ -26,7 +26,7 @@ U_ref   = 9;            % desired surge speed (m/s)
 % los_int = x(10); 
 
 % initial states
-psi_0 = deg2rad(-110); % initial yaw angle
+psi_0 = deg2rad(90); % initial yaw angle
 
 eta_0 = [0 0 psi_0]';
 nu_0  = [0 0 0]';
@@ -35,25 +35,71 @@ n_0 = 0;
 Qm_0 = 0; 
 los_int_0 = 0; 
 los_int_dot = 0; 
-x = [nu_0' eta_0' delta_0 n_0 Qm_0]';
+x = [nu_0' eta_0' delta_0 n_0 Qm_0 los_int_0]';
 xd = [psi_0 0 0]';            % initial reference
 e_int = 0;       % initial error integral
+
+load('WP.mat');
+wp_index = 1; 
 
 % measurements
 sigma_yaw = deg2rad(0.5); % [rad]
 sigma_yaw_rate = deg2rad(0.1); % [rad/s]
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % initialization KF
-x_hat = x0; Qd = constant;
-P_hat = P0; Rd = constant;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Wave model params
+w0 = 1.2;                   %from example 13.4 - Marine craft vessel
+lambda = 0.1;               %from example 13.4 - Marine craft vessel
+sigma_w = sqrt(300);        %from example 13.4 - Marine craft vessel
+Kw = 2*lambda*w0^2*sigma_w;
+T = -99.47; %from assignment 2, part 2. Nomoto model linearlized about Uref = 9 m/s
+K = -0.0049; %from assignment 2, part 2. Nomoto model linearlized about Uref = 9 m/s
+
+% continous time system model
+A = [0     1            0  0    0
+    -w0^2 -2*lambda*w0  0  0    0
+     0     0            0  1    0
+     0     0            0 -1/T -K/T
+     0     0            0  0    0];
+
+B = [0 0 0 K/T 0]';
+C = [0 1 1 0 0];
+E = [0  0 0
+     Kw 0 0
+     0  0 0
+     0  1 0
+     0  0 1];
+
+% Discretize the system
+Ad = eye(5) + h*A;
+Bd = h*B;
+Cd = C;
+Ed = h*E;
+
+Qd = 5^2*eye(3);
+Rd = sigma_yaw^2;
+x0_KF = [0 0 psi_0 0 0]';
+P0 = eye(5);
+x_est = x0_KF; 
+P_est = P0; 
 
 
-load('WP.mat');
-wp_index = 1; 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Sim settingings
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 compensate_for_crab = false;
 use_ILOS = false; 
 no_current = true; 
+
+
+use_real_psi = false; 
+use_noisy_psi = false;
+use_estimated_psi = true; 
 
 
 
@@ -134,10 +180,10 @@ for i=1:Ns+1
     % Run KF
     [x_pst,P_pst,x_prd,P_prd] = KF(x_est,P_est,Ad,Bd,Ed,Cd,Qd,Rd,psi_meas,delta);
     % Redefine the errors based on the estimated states
-    e_psi = ssa(x_pst(1) - psi_d);
-    e_r = x_pst(2) - r_d;
-    e_u = x(1) - u_d;
 
+
+    x_est = x_pst;
+    P_est = P_pst;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 2, 2d) Add a reference model here 
@@ -155,7 +201,7 @@ for i=1:Ns+1
     [y_e, pi_p] = crossTrackError(xk1,yk1,xk,yk,x(4),x(5)); 
 
     if compensate_for_crab
-        crab_angle = compute_crab_angle(x(1:3));
+        crab_angle = compute_crab_angle(x(1:2));
     else
         crab_angle = 0; 
     end
@@ -182,10 +228,19 @@ for i=1:Ns+1
     % The result should look like this:
     % delta_c = PID_heading(e_psi,e_r,e_int);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %delta_c = 0.1;              % rudder angle command (rad)
+    if use_estimated_psi
+        psi = x_est(3); 
+    elseif use_noisy_psi
+        psi = psi_meas; 
+    else
+        psi = psi; 
+    end
+
+    
     e_psi = ssa(psi - psi_d);
     e_r = r - r_d;
     e_int = e_int + e_psi*h;
+    e_u = x(1) - u_d;
     
     delta_c = PID_heading(e_psi, e_r, e_int); 
     

@@ -1,5 +1,8 @@
-3a) The main intention of a wave filter in model based navigation is to filter out noise. 
-This is because we do not want the system to compensate for the wave frequencies. 
+3a) The main intention of a wave filter (low pass filter) in model based navigation is to filter out noise. 
+This is because we do not want the system to compensate for the wave frequencies, only the useful measurements. 
 
 
-b) 
+b) The main difference between model based navigation and INS is that INS uses internal sensor data to determine
+its position and orientation, whereas model based navigation rely on mathematical predictions. 
+INS in contrast to model based navigation is at risk of accumulating error leading to drift. 
+However this is spossible to correct if using external data. 
