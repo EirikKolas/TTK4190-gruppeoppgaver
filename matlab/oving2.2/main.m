@@ -38,6 +38,8 @@ e_int = 0;       % initial error integral
 load('WP.mat');
 wp_index = 1; 
 
+compensate_for_crab = true; 
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -68,6 +70,7 @@ for i=1:Ns+1
     v_c = Vc*sin(beta_Vc - psi);
 
     nu_c = [ u_c v_c 0 ]';
+%     nu_c = zeros(3,1); 
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Part 2, 1c) Add wind disturbance here 
@@ -110,7 +113,8 @@ for i=1:Ns+1
     %     Guidance law
     [xk1,yk1,xk,yk,wp_index] = wp_selector(x(4),x(5), wp_index, WP);
     [y_e, pi_p] = crossTrackError(xk1,yk1,xk,yk,x(4),x(5)); 
-    chi_d = LOS_guidance(y_e,pi_p);
+    crab_angle = compute_crab_angle(x(1:3)); 
+    chi_d = LOS_guidance(y_e,pi_p, crab_angle, compensate_for_crab);
     psi_ref = chi_d;
 
     xd_dot = ref_model(xd, psi_ref);
